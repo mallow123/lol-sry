@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtual Staring Contest</title>
+    
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <!-- Animate.css for animations -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+    <!-- AOS for scroll animations -->
+    <link rel="stylesheet" href="https://cdn.rawgit.com/michalsnik/aos/2.3.1/dist/aos.css" />
+
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden; /* Prevent scrollbars */
+            background: linear-gradient(to bottom right, #f0f0f0, #a2d0e2); /* Gradient background */
+            font-family: 'Montserrat', sans-serif; /* Use Google Font */
+            transition: background-color 0.5s; /* Smooth transition for background */
+        }
+        #contest {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent background */
+            border-radius: 15px; /* Rounded corners */
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); /* Shadow for depth */
+        }
+        #character {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100vw; /* Fullscreen width */
+            height: auto; /* Maintain aspect ratio */
+            animation: blink 3s infinite; /* Initial blinking animation */
+        }
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            10%, 40% { opacity: 0; }
+        }
+        #timer {
+            margin-top: 20px;
+            font-size: 24px;
+            color: #333; /* Dark text for contrast */
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px; /* Rounded button */
+            background-color: #007BFF; /* Button color */
+            color: white; /* Button text color */
+            transition: background-color 0.3s; /* Smooth transition */
+        }
+        button:hover {
+            background-color: #0056b3; /* Darker on hover */
+        }
+        /* Particles background */
+        #particles-js {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="particles-js"></div> <!-- Particles background -->
+    <div id="contest" data-aos="fade-up">
+        <h1>Who Can Stare the Longest?</h1>
+        <img id="character" src="foxy-foxplushy.gif" alt="Staring Character"> <!-- Update the src with your GIF path -->
+        <p id="timer">Stared for: 0 seconds</p>
+        <button onclick="startContest()">Start Contest</button>
+        <p id="message" style="font-size: 20px; color: #333;"></p> <!-- Area for messages -->
+    </div>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Howler.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js"></script>
+
+    <!-- AOS script -->
+    <script src="https://cdn.rawgit.com/michalsnik/aos/2.3.1/dist/aos.js"></script>
+
+    <!-- Confetti.js -->
+    <script src="https://cdn.rawgit.com/mathusummut/confetti.js/master/confetti.js"></script>
+
+    <!-- Particles.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+
+    <script>
+        let staring = false;
+        let startTime;
+        let timer;
+        let level = 0; // Level tracking
+
+        // Ambient sound for background
+        const ambientSound = new Howl({
+            src: ['ambient-sound.mp3'], // Update with your ambient sound file path
+            loop: true,
+            volume: 0.5,
+        });
+
+        // Sound effect for blinking or ending the contest
+        const sound = new Howl({
+            src: ['girl-chucklewav-14669.mp3'], // Update with your sound file path
+        });
+
+        // Function to start the contest
+        function startContest() {
+            staring = true;
+            startTime = Date.now();
+            timer = setInterval(checkStaring, 100); // Check every 100ms
+            ambientSound.play(); // Play ambient sound
+            document.getElementById("character").style.animation = "none"; // Stop blinking animation
+            document.getElementById("timer").innerText = "Stared for: 0 seconds"; // Reset timer display
+            document.getElementById("message").innerText = "Don't blink or laugh!"; // Display instructions
+            
+            // SweetAlert instead of a pop-up
+            Swal.fire({
+                title: 'Instructions',
+                text: "Don't blink or laugh!",
+                icon: 'info',
+                confirmButtonText: 'Okay'
+            });
+        }
+
+        // Function to change background color based on time
+        function changeBackground() {
+            const elapsedTime = Math.floor((Date.now() - startTime) / 1000); // Time in seconds
+            const colors = ['#f0f0f0', '#a2d0e2', '#ffcccb', '#d3d3d3', '#fffacd'];
+
+            // Change background color based on elapsed time
+            document.body.style.backgroundColor = colors[elapsedTime % colors.length];
+        }
+
+        // Function to check if the user is still staring
+        function checkStaring() {
+            if (!staring) return; // Stop checking if not staring
+            changeBackground(); // Change the background color
+            const currentTime = Date.now();
+            const elapsedTime = Math.floor((currentTime - startTime) / 1000); // Time in seconds
+
+            // Display the elapsed time
+            document.getElementById("timer").innerText = `Stared for: ${elapsedTime} seconds`;
+
+            // Increase level based on time
+            if (elapsedTime > level * 10) { // Level up every 10 seconds
+                level++;
+                document.getElementById("message").innerText = `Level up! You are now at level ${level}!`;
+            }
+        }
+
+        // Function to stop the contest
+        function endContest() {
+            clearInterval(timer);
+            staring = false;
+            const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+            document.getElementById("message").innerText = `You blinked or laughed! Time: ${elapsedSeconds} seconds.`; // Show final message
+            
+            // Play sound effect when contest ends
+            sound.play();
+
+            // Trigger confetti animation
+            confetti();
+
+            document.getElementById("character").style.animation = "blink 3s infinite"; // Restart blinking animation
+        }
+
+        // Event listeners
+        document.getElementById("character").addEventListener("mouseover", () => {
+            // Stop contest if the user moves the mouse away
+            endContest();
+        });
+
+        window.addEventListener("mousedown", endContest); // Ends contest on mouse click
+
+        // Initialize AOS
+        AOS.init();
+
+        // Particles.js configuration
+        particlesJS("particles-js", {
+            particles: {
+                number: {
+                    value: 100,
+                    density: {
+                        enable: true,
+                        value_area: 800
+                    }
+                },
+                color: {
+                    value: "#ffffff"
+                },
+                shape: {
+                    type: "circle",
+                    stroke: {
+                        width: 0,
+                        color: "#000000"
+                    },
+                    polygon: {
+                        nb_sides: 5
+                    },
+                    image: {
+                        src: "img/github.svg",
+                        width: 100,
+                        height: 100
+                    }
+                },
+                opacity: {
+                    value: 0.5,
+                    random: false,
+                    anim: {
+                        enable: false,
+                        speed: 1,
+                        opacity_min: 0.1,
+                        sync: false
+                    }
+                },
+                size: {
+                    value: 10,
+                    random: true,
+                    anim: {
+                        enable: false,
+                        speed: 40,
+                        size_min: 0.1,
+                        sync: false
+                    }
+                },
+                line_linked: {
+                    enable: true,
+                    distance: 150,
+                    color: "#ffffff",
+                    opacity: 0.4,
+                    width: 1
+                },
+                move: {
+                    enable: true,
+                    speed: 6,
+                    direction: "none",
+                    random: false,
+                    straight: false,
+                    out_mode: "out",
+                    bounce: false,
+                    attract: {
+                        enable: false,
+                        rotateX: 600,
+                        rotateY: 1200
+                    }
+                }
+            },
+            interactivity: {
+                detect_on: "canvas",
+                events: {
+                    onhover: {
+                        enable: true,
+                        mode: "repulse"
+                    },
+                    onclick: {
+                        enable: true,
+                        mode: "push"
+                    },
+                    resize: true
+                },
+                modes: {
+                    grab: {
+                        distance: 400,
+                        line_linked: {
+                            opacity: 1
+                        }
+                    },
+                    bubble: {
+                        distance: 400,
+                        size: 40,
+                        duration: 2,
+                        opacity: 8,
+                        speed: 3
+                    },
+                    repulse: {
+                        distance: 200,
+                        duration: 0.4
+                    },
+                    push: {
+                        particles_nb: 4
+                    },
+                    remove: {
+                        particles_nb: 2
+                    }
+                }
+            },
+            retina_detect: true
+        });
+    </script>
+</body>
+</html>
